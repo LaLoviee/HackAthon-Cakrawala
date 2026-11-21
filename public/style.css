@@ -1,0 +1,163 @@
+/* CakraBoard Frontend Styling */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Range Input Slider Styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #7357E8;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Canvas styling */
+#whiteboard-canvas {
+  touch-action: none; /* Cegah gesture browser seperti pull-to-refresh & zoom saat menggambar */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Color Dot Active Ring */
+.color-dot.active {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #7357E8;
+}
+
+/* Toast Animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-animate {
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Subtle pulse for Live Indicator */
+@keyframes livePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+.live-pulse {
+  animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* QR Scanner Reticle Animation */
+@keyframes scanLine {
+  0%, 100% { top: 15%; }
+  50% { top: 80%; }
+}
+
+.qr-scan-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7357E8, transparent);
+  animation: scanLine 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Mobile Sidebar Drawer */
+#main-sidebar {
+  will-change: transform;
+}
+
+#main-sidebar.open {
+  transform: translateX(0) !important;
+}
+
+/* Mobile Drawing Tools Panel */
+#drawing-tools-panel.mobile-open {
+  transform: translateX(0) !important;
+}
+
+/* Mobile backdrop */
+.backdrop-active {
+  display: block !important;
+  opacity: 1;
+}
+
+/* Responsive Mobile Layout Adjustments */
+@media (max-width: 768px) {
+  #drawing-tools-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 45;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+    transform: translateX(100%);
+    width: 85vw;
+    max-width: 320px;
+  }
+
+  #drawing-tools-panel.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Students drawer: stack vertically on small screens */
+  #students-expanded-card {
+    width: 92vw !important;
+    max-width: 92vw !important;
+  }
+
+  #students-expanded-card .grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Whiteboard header items tighter on mobile */
+  #whiteboard-room-layout header {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    height: 3.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #students-expanded-card .grid {
+    grid-template-columns: 1fr !important;
+  }
+}

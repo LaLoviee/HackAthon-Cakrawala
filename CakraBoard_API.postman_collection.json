@@ -1,0 +1,671 @@
+{
+  "info": {
+    "_postman_id": "c6a2e4b8-9d1f-4a3c-8e2b-7f1a5c0d2e4f",
+    "name": "CakraBoard API",
+    "description": "Koleksi API CakraBoard untuk pengujian REST API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Harus 200 {ok:true}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Auth (mock SIAKAD)",
+      "item": [
+        {
+          "name": "Login Dosen (Pak Rudi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/siakad",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"mock:D001:dosen:Pak Rudi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Vars -> Set Env Variable: dosenToken = json.token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json.token) {",
+                  "  pm.environment.set(\"dosenToken\", json.token);",
+                  "  console.log(\"dosenToken tersimpan:\", json.token.slice(0, 20) + \"...\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Mahasiswa (Sinta)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/siakad",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"mock:M001:mahasiswa:Sinta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Vars -> Set Env Variable: mhsToken = json.token ; mhsId = json.user.id"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json.token) {",
+                  "  pm.environment.set(\"mhsToken\", json.token);",
+                  "  if (json.user && json.user.id) pm.environment.set(\"mhsId\", json.user.id);",
+                  "  console.log(\"mhsToken dan mhsId tersimpan:\", json.user ? json.user.id : \"\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Mahasiswa luar kelas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/siakad",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"mock:M999:mahasiswa:Orang Luar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Vars -> Set Env Variable: outsiderToken = json.token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json.token) {",
+                  "  pm.environment.set(\"outsiderToken\", json.token);",
+                  "  console.log(\"outsiderToken tersimpan\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login token salah (harus 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/siakad",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"ngawur\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Me (dosen)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Dosen: buat & atur sesi",
+      "item": [
+        {
+          "name": "Daftar kelas (dosen)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/courses",
+            "description": "Vars: courseId = json.data[0].id"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 200 && json.data && json.data.length > 0) {",
+                  "  pm.environment.set(\"courseId\", json.data[0].id);",
+                  "  console.log(\"courseId tersimpan:\", json.data[0].id, json.data[0].name);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buat board (sesi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\",\n  \"title\": \"Kalkulus - Turunan\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Vars: sessionId = json.id ; code = json.code. Response berisi joinUrl & qrDataUrl (data:image/png;base64)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (pm.response.code === 201) {",
+                  "  if (json.id) pm.environment.set(\"sessionId\", json.id);",
+                  "  if (json.code) pm.environment.set(\"code\", json.code);",
+                  "  console.log(\"sessionId dan code tersimpan:\", json.code, json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buat board: bukan pengampu / courseId ngawur (harus 404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"00000000-0000-0000-0000-000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Buat board oleh mahasiswa (harus 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{courseId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Detail sesi",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}"
+          }
+        },
+        {
+          "name": "Ubah izin: student_write",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/settings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessMode\": \"student_write\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ubah izin: view_only",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/settings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessMode\": \"view_only\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Start session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/start"
+          }
+        },
+        {
+          "name": "Start lagi (harus 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/start"
+          }
+        },
+        {
+          "name": "Daftar peserta",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/participants"
+          }
+        },
+        {
+          "name": "Cabut izin tulis mahasiswa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/participants/{{mhsId}}/write",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allowed\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Beri izin tulis mahasiswa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/participants/{{mhsId}}/write",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allowed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "End session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/end"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Mahasiswa: join & lihat",
+      "item": [
+        {
+          "name": "Join pakai kode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/join",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Join kode salah (harus 404 INVALID_CODE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/join",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"ZZZZZZ\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Join oleh mahasiswa luar kelas (harus 403 NOT_ENROLLED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{outsiderToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/join",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Start oleh mahasiswa (harus 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/start"
+          }
+        },
+        {
+          "name": "Detail sesi (mahasiswa)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}"
+          }
+        },
+        {
+          "name": "Snapshot terkini",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/snapshot"
+          }
+        },
+        {
+          "name": "Snapshot rewind (?upToSeq=1)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/snapshot?upToSeq=1"
+          }
+        },
+        {
+          "name": "Events (replay)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}/events?afterSeq=0&limit=500",
+            "description": "Kosong kalau belum ada aksi. Jalankan `npm run demo` atau frontend untuk mengisi."
+          }
+        },
+        {
+          "name": "Akses sesi tanpa token (harus 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sessions/{{sessionId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. History",
+      "item": [
+        {
+          "name": "History mahasiswa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhsToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/history?page=1&limit=20"
+          }
+        },
+        {
+          "name": "History dosen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosenToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/history"
+          }
+        }
+      ]
+    }
+  ]
+}
